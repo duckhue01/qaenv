@@ -1,0 +1,31 @@
+# permissions for end users to edit qaenvs.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: qaenv-editor-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: qaenv
+    app.kubernetes.io/part-of: qaenv
+    app.kubernetes.io/managed-by: kustomize
+  name: qaenv-editor-role
+rules:
+- apiGroups:
+  - qaenv.io
+  resources:
+  - qaenvs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - qaenv.io
+  resources:
+  - qaenvs/status
+  verbs:
+  - get

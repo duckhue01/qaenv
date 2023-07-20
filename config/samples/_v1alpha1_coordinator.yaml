@@ -1,0 +1,12 @@
+apiVersion: qaenv.io/v1alpha1
+kind: Coordinator
+metadata:
+  labels:
+    app.kubernetes.io/name: coordinator
+    app.kubernetes.io/instance: coordinator-sample
+    app.kubernetes.io/part-of: qaenv
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: qaenv
+  name: coordinator-sample
+spec:
+  # TODO(user): Add fields here

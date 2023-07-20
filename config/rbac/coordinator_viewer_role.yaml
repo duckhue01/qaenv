@@ -1,0 +1,27 @@
+# permissions for end users to view coordinators.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: coordinator-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: qaenv
+    app.kubernetes.io/part-of: qaenv
+    app.kubernetes.io/managed-by: kustomize
+  name: coordinator-viewer-role
+rules:
+- apiGroups:
+  - qaenv.io
+  resources:
+  - coordinators
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - qaenv.io
+  resources:
+  - coordinators/status
+  verbs:
+  - get

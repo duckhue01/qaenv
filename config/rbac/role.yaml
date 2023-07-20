@@ -1,0 +1,58 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: manager-role
+rules:
+- apiGroups:
+  - qaenv.io
+  resources:
+  - coordinators
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - qaenv.io
+  resources:
+  - coordinators/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - qaenv.io
+  resources:
+  - coordinators/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - qaenv.io
+  resources:
+  - qaenvs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - qaenv.io
+  resources:
+  - qaenvs/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - qaenv.io
+  resources:
+  - qaenvs/status
+  verbs:
+  - get
+  - patch
+  - update
