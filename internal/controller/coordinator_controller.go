@@ -20,6 +20,7 @@ import (
 	"context"
 	"time"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
@@ -96,7 +97,7 @@ func (r *CoordinatorReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			log.Info("can not get ImagePolicy")
 		}
 
-		r.reconcileForEachEnv(v, imagePolicy.Status.LatestImage)
+		r.reconcileForEachEnv(ctx, v, imagePolicy.Status.LatestImage, &coordinator)
 	}
 
 	return ctrl.Result{
@@ -105,14 +106,60 @@ func (r *CoordinatorReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	}, nil
 }
 
-func (r *CoordinatorReconciler) reconcileForEachEnv(env, latestTag string) {
+func (r *CoordinatorReconciler) reconcileForEachEnv(
+	ctx context.Context,
+	env string,
+	latestTag string,
+	coordinator *qaenviov1.Coordinator,
+) {
 
+	// change detected
+	if r.envM[env] != latestTag {
+		// check whether or not the image automation is passed
+		// create qaenv
+
+		err := r.createQAEnv(ctx, env, coordinator)
+		if err != nil {
+
+		}
+	}
+
+}
+
+func (r *CoordinatorReconciler) createQAEnv(
+	ctx context.Context,
+	name string,
+	coordinator *qaenviov1.Coordinator,
+
+) error {
+	log := ctrl.LoggerFrom(ctx)
+
+	qaEnv := &qaenviov1.QAEnv{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: coordinator.Namespace,
+		},
+		Spec: qaenviov1.QAEnvSpec{},
+	}
+
+	if err := ctrl.SetControllerReference(coordinator, qaEnv, r.Scheme); err != nil {
+		return err
+	}
+
+	if err := r.Client.Create(ctx, qaEnv); err != nil {
+		log.Info("error creating preview environment", "name", name)
+		return err
+	}
+
+	log.Info("preview environment created", "name", name)
+
+	return nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *CoordinatorReconciler) SetupWithManager(mgr ctrl.Manager) error {
-
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&qaenviov1.Coordinator{}).
+		Owns(&qaenviov1.QAEnv{}).
 		Complete(r)
 }
