@@ -31,12 +31,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	imagev1 "github.com/fluxcd/image-reflector-controller/api/v1beta2"
-
 	qaenviov1 "github.com/duckhue01/qaenv/api/v1alpha1"
-
 	qaenviov1alpha1 "github.com/duckhue01/qaenv/api/v1alpha1"
 	"github.com/duckhue01/qaenv/internal/controller"
+	imagev1 "github.com/fluxcd/image-reflector-controller/api/v1beta2"
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -51,6 +51,9 @@ func init() {
 	utilruntime.Must(qaenviov1.AddToScheme(scheme))
 	utilruntime.Must(imagev1.AddToScheme(scheme))
 	utilruntime.Must(qaenviov1alpha1.AddToScheme(scheme))
+	utilruntime.Must(kustomizev1.AddToScheme(scheme))
+	utilruntime.Must(sourcev1.AddToScheme(scheme))
+
 	//+kubebuilder:scaffold:scheme
 }
 

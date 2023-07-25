@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"github.com/fluxcd/pkg/apis/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -28,13 +29,9 @@ type CoordinatorSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// ImageRepositories are fluxcd ImageRepository object name. Used to fetch the latest image tag and detect update in env.
+	// Secret hold needed secret for coordinator
 	// +required
-	ImageRepositories []string `json:"imageRepositories"`
-
-	// Secret is the name of secret.
-	// +required
-	Secret string `json:"secret"`
+	SecretRef meta.NamespacedObjectReference `json:"secretRef"`
 
 	// GithubRepoURL is application repository owner that Coordinator will observer events.
 	// +required
@@ -43,12 +40,24 @@ type CoordinatorSpec struct {
 	// GithubRepoName is application repository name that Coordinator will observer events.
 	// +required
 	GithubRepoName string `json:"githubRepoName"`
+
+	// QAEnvLimit is upper bound number of QAEnv
+	// +required
+	QAEnvLimit int `json:"qaEnvLimit"`
 }
 
 // CoordinatorStatus defines the observed state of Coordinator
 type CoordinatorStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
+	PullRequestMap map[string]PullRequest `json:"pullRequestMap"`
+	QaEnvs         []bool                 `json:"qaEnv"`
+}
+
+type PullRequest struct {
+	Status QAEnvStatusCode `json:"status"`
+	QAEnv  *int            `json:"qaEnv,omitempty"`
 }
 
 //+kubebuilder:object:root=true

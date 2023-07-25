@@ -17,7 +17,17 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"github.com/fluxcd/pkg/apis/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
+
+type QAEnvStatusCode string
+
+var (
+	Pending   QAEnvStatusCode = "pending"
+	Allocated QAEnvStatusCode = "allocated"
+	Deployed  QAEnvStatusCode = "deployed"
+	Failed    QAEnvStatusCode = "failed"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
@@ -36,6 +46,14 @@ type QAEnvSpec struct {
 type QAEnvStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
+	// Kustomization
+	// +optional
+	Kustomization *meta.NamespacedObjectReference `json:"kustomization,omitempty"`
+
+	// ImageReflector
+	// +optional
+	ImageReflector *meta.NamespacedObjectReference `json:"imageReflector,omitempty"`
 }
 
 //+kubebuilder:object:root=true

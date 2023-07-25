@@ -9,4 +9,9 @@ metadata:
     app.kubernetes.io/created-by: qaenv
   name: coordinator-sample
 spec:
-  # TODO(user): Add fields here
+  secretRef:
+    name: qaenv-sample
+    namespace: flux-system
+  githubRepoOwner: ahiho
+  githubRepoName: vibes-api
+  qaEnvLimit: 4

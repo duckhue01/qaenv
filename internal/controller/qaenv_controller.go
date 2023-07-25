@@ -18,7 +18,11 @@ package controller
 
 import (
 	"context"
+	"time"
 
+	imagev1 "github.com/fluxcd/image-reflector-controller/api/v1beta2"
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -49,14 +53,42 @@ type QAEnvReconciler struct {
 func (r *QAEnvReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := log.FromContext(ctx)
 
-	log.Info(req.Name)
+	qaEnv := qaenviov1.QAEnv{}
 
-	return ctrl.Result{}, nil
+	if err := r.Get(context.Background(), req.NamespacedName, &qaEnv); err != nil {
+		log.Error(err, "coordinator not found")
+		return ctrl.Result{}, err
+	}
+	log.Info(qaEnv.Name)
+
+	return ctrl.Result{
+		Requeue:      true,
+		RequeueAfter: 5 * time.Second,
+	}, nil
+}
+
+func (r *QAEnvReconciler) createNamespace() {
+
+}
+
+func (r *QAEnvReconciler) createImagePolicy() {
+
+}
+
+func (r *QAEnvReconciler) createKustomization() {
+
+}
+
+func (r *QAEnvReconciler) createGitRepository() {
+
 }
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *QAEnvReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&qaenviov1.QAEnv{}).
+		Owns(&imagev1.ImagePolicy{}).
+		Owns(&sourcev1.GitRepository{}).
+		Owns(&kustomizev1.Kustomization{}).
 		Complete(r)
 }

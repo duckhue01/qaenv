@@ -1,5 +1,7 @@
 ## Append samples of your project ##
 resources:
-- _v1alpha1_qaenv.yaml
-- _v1alpha1_coordinator.yaml
+  # - _v1alpha1_qaenv.yaml
+  - _v1alpha1_coordinator.yaml
+  - secret.yaml
 #+kubebuilder:scaffold:manifestskustomizesamples
+namespace: flux-system

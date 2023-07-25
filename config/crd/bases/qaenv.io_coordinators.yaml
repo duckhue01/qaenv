@@ -14,7 +14,7 @@ spec:
     singular: coordinator
   scope: Namespaced
   versions:
-  - name: v1
+  - name: v1alpha1
     schema:
       openAPIV3Schema:
         description: Coordinator is the Schema for the coordinators API
@@ -42,23 +42,49 @@ spec:
                 description: GithubRepoURL is application repository owner that Coordinator
                   will observer events.
                 type: string
-              imageRepositories:
-                description: ImageRepositories are fluxcd ImageRepository object name.
-                  Used to fetch the latest image tag and detect update in env.
-                items:
-                  type: string
-                type: array
-              secret:
-                description: Secret is the name of secret.
-                type: string
+              qaEnvLimit:
+                description: QAEnvLimit is upper bound number of QAEnv
+                type: integer
+              secretRef:
+                description: Secret hold needed secret for coordinator
+                properties:
+                  name:
+                    description: Name of the referent.
+                    type: string
+                  namespace:
+                    description: Namespace of the referent, when not specified it
+                      acts as LocalObjectReference.
+                    type: string
+                required:
+                - name
+                type: object
             required:
             - githubRepoName
             - githubRepoOwner
-            - imageRepositories
-            - secret
+            - qaEnvLimit
+            - secretRef
             type: object
           status:
             description: CoordinatorStatus defines the observed state of Coordinator
+            properties:
+              pullRequestMap:
+                additionalProperties:
+                  properties:
+                    qaEnv:
+                      type: integer
+                    status:
+                      type: string
+                  required:
+                  - status
+                  type: object
+                type: object
+              qaEnv:
+                items:
+                  type: boolean
+                type: array
+            required:
+            - pullRequestMap
+            - qaEnv
             type: object
         type: object
     served: true
