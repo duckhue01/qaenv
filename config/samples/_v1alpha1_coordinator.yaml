@@ -13,5 +13,20 @@ spec:
     name: qaenv-sample
     namespace: flux-system
   githubRepoOwner: ahiho
-  githubRepoName: vibes-api
-  qaEnvLimit: 4
+  interval: 10s
+  services:
+    vibes-api:
+      - vibes-api
+    vibes-dashboard:
+      - vibes-dashboard
+  qaEnvTemplate:
+    interval: 15s
+    qaEnvs:
+      - 4
+      # - 5
+      # - 6
+  projectName: vibes
+  sourceRef:
+    name: flux-system
+    namespace: flux-system
+    kind: GitRepository

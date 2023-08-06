@@ -34,26 +34,121 @@ spec:
           spec:
             description: QAEnvSpec defines the desired state of QAEnv
             properties:
-              foo:
-                description: Foo is an example field of QAEnv. Edit qaenv_types.go
-                  to remove/update
+              imageRepositoryRef:
+                description: ImageRepositoryRef
+                items:
+                  properties:
+                    imageRepositoryRef:
+                      description: NamespacedObjectReference contains enough information
+                        to locate the referenced Kubernetes resource object in any
+                        namespace.
+                      properties:
+                        name:
+                          description: Name of the referent.
+                          type: string
+                        namespace:
+                          description: Namespace of the referent, when not specified
+                            it acts as LocalObjectReference.
+                          type: string
+                      required:
+                      - name
+                      type: object
+                    name:
+                      type: string
+                  required:
+                  - imageRepositoryRef
+                  - name
+                  type: object
+                type: array
+              interval:
+                description: Interval
                 type: string
+              kustomizationSpec:
+                description: KustomizationSpec
+                properties:
+                  interval:
+                    description: Interval.
+                    type: string
+                  kind:
+                    description: Kind of the referent.
+                    enum:
+                    - OCIRepository
+                    - GitRepository
+                    - Bucket
+                    type: string
+                  name:
+                    description: Name of the referent.
+                    type: string
+                  path:
+                    type: string
+                  prune:
+                    default: true
+                    type: boolean
+                  sourceRef:
+                    description: CrossNamespaceSourceReference contains enough information
+                      to let you locate the typed Kubernetes resource object at cluster
+                      level.
+                    properties:
+                      apiVersion:
+                        description: API version of the referent.
+                        type: string
+                      kind:
+                        description: Kind of the referent.
+                        enum:
+                        - OCIRepository
+                        - GitRepository
+                        - Bucket
+                        type: string
+                      name:
+                        description: Name of the referent.
+                        type: string
+                      namespace:
+                        description: Namespace of the referent, defaults to the namespace
+                          of the Kubernetes resource object that contains the reference.
+                        type: string
+                    required:
+                    - kind
+                    - name
+                    type: object
+                required:
+                - interval
+                - kind
+                - name
+                - path
+                - sourceRef
+                type: object
+              qaEnvIndex:
+                description: QAEnvIndex
+                type: string
+              ticketId:
+                description: TicketId int `json:"pullRequestName"`
+                type: string
+            required:
+            - imageRepositoryRef
+            - interval
+            - kustomizationSpec
+            - qaEnvIndex
+            - ticketId
             type: object
           status:
             description: QAEnvStatus defines the observed state of QAEnv
             properties:
-              imageReflector:
-                description: ImageReflector
-                properties:
-                  name:
-                    description: Name of the referent.
-                    type: string
-                  namespace:
-                    description: Namespace of the referent, when not specified it
-                      acts as LocalObjectReference.
-                    type: string
-                required:
-                - name
+              imagePolicies:
+                additionalProperties:
+                  description: NamespacedObjectReference contains enough information
+                    to locate the referenced Kubernetes resource object in any namespace.
+                  properties:
+                    name:
+                      description: Name of the referent.
+                      type: string
+                    namespace:
+                      description: Namespace of the referent, when not specified it
+                        acts as LocalObjectReference.
+                      type: string
+                  required:
+                  - name
+                  type: object
+                description: GitRepository
                 type: object
               kustomization:
                 description: Kustomization

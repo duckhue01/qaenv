@@ -19,12 +19,13 @@ package controller
 import (
 	"context"
 	"fmt"
-	"strconv"
-	"time"
+	"strings"
 
+	"github.com/fluxcd/pkg/apis/meta"
 	"github.com/google/go-github/v53/github"
 	"golang.org/x/oauth2"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -36,16 +37,8 @@ import (
 	qaenviov1 "github.com/duckhue01/qaenv/api/v1alpha1"
 )
 
-type PRLabels string
-
 const (
-	ReadyToDeployQA PRLabels = "ready-to-deploy-qa"
-	ReadyToReVokeQA PRLabels = "ready-to-revoke-qa"
-)
-
-var (
-	EmptyString        = ""
-	EmptyStringPointer = &EmptyString
+	InQA = "in-qa"
 )
 
 // CoordinatorReconciler reconciles a Coordinator object
@@ -54,6 +47,8 @@ type CoordinatorReconciler struct {
 	Scheme   *runtime.Scheme
 	Recorder record.EventRecorder
 	gh       *github.Client
+
+	tickets map[string][]github.PullRequest
 }
 
 //+kubebuilder:rbac:groups=qaenv.io,resources=coordinators,verbs=get;list;watch;create;update;patch;delete
@@ -80,15 +75,17 @@ func (r *CoordinatorReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	}
 
 	// initiate state
-	if coordinator.Status.PullRequestMap == nil {
-		coordinator.Status.PullRequestMap = make(map[string]qaenviov1.PullRequest)
+	if coordinator.Status.TicketMap == nil {
+		coordinator.Status.TicketMap = make(map[string]*qaenviov1.TicketMap)
 	}
 
 	if len(coordinator.Status.QaEnvs) == 0 {
-		coordinator.Status.QaEnvs = make([]bool, coordinator.Spec.QAEnvLimit)
-	}
+		coordinator.Status.QaEnvs = make(map[string]bool)
+		for _, v := range coordinator.Spec.QAEnvTemplate.QaEnvs {
+			coordinator.Status.QaEnvs[fmt.Sprint(v)] = false
+		}
 
-	fmt.Println(coordinator.Status)
+	}
 
 	secret := corev1.Secret{}
 
@@ -111,20 +108,31 @@ func (r *CoordinatorReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	r.gh = github.NewClient(oauth2.NewClient(ctx, ts))
 
 	err := r.reconcileGithubPR(ctx, &coordinator)
-
-	// reconcileQAEnv
 	if err != nil {
 		log.Error(err, "error reconcile github pr")
+		return ctrl.Result{}, err
 	}
 
-	// reflect to spec status
+	// todo: remove
+	for k, t := range r.tickets {
+		for _, pr := range t {
+			fmt.Printf("ticket: %s pr: %s - %s \n", k, pr.Head.Repo.GetName(), pr.Head.GetRef())
+		}
+	}
+
+	err = r.reconcileQAEnv(ctx, &coordinator)
+	if err != nil {
+		log.Error(err, "error reconcile qa env")
+		return ctrl.Result{}, err
+	}
+
 	if err := r.Client.Status().Update(ctx, &coordinator); err != nil {
 		log.Error(err, "error reconcile github pr")
 	}
 
 	return ctrl.Result{
 		Requeue:      true,
-		RequeueAfter: 5 * time.Second,
+		RequeueAfter: coordinator.Spec.Interval.Duration,
 	}, err
 }
 
@@ -132,78 +140,207 @@ func (r *CoordinatorReconciler) reconcileGithubPR(
 	ctx context.Context,
 	coordinator *qaenviov1.Coordinator,
 ) error {
-	log := log.FromContext(ctx)
-	latestPRs := make(map[int]*github.PullRequest)
+	r.tickets = make(map[string][]github.PullRequest)
 
-	// get all of repo's prs that is opened
-	prs, _, err := r.gh.PullRequests.List(
-		ctx,
-		coordinator.Spec.GithubRepoOwner,
-		coordinator.Spec.GithubRepoName,
-		nil,
-	)
-	if err != nil {
-		return fmt.Errorf("error get list of opened pr: %w", err)
-	}
-
-	for _, pr := range prs {
-		latestPRs[*pr.Number] = pr
-	}
-
-	// closed/merged PR => revoke QAEnv
-	// PRs have ready-to-revoke-qa label and QAEnv already existed => revoke QAEnv
-	for k, v := range coordinator.Status.PullRequestMap {
-		kInt, err := strconv.ParseInt(k, 10, 0)
-
+	// need to follow operator code style
+	for repoName := range coordinator.Spec.Services {
+		err := r.makeTicketMapFromPullRequest(ctx, coordinator.Spec.GithubRepoOwner, repoName)
 		if err != nil {
-			return fmt.Errorf("error parse pr id string to int: %w", err)
+			return fmt.Errorf("error get list of opened pr: %w", err)
+		}
+	}
+
+	return nil
+}
+
+// reconcileQAEnv make sure current status match with the state of git github
+func (r *CoordinatorReconciler) reconcileQAEnv(
+	ctx context.Context,
+	coordinator *qaenviov1.Coordinator,
+) error {
+	log := log.FromContext(ctx)
+
+	// remove qaenv for ticket doesn't have any in-qa pr and update prs for that ticket
+	for ticketId, tval := range coordinator.Status.TicketMap {
+		if r.tickets[ticketId] == nil {
+			err := r.revokeQAEnv(ctx, coordinator, ticketId)
+			if err != nil {
+				log.Error(err, "error revoke QAEnv")
+				return err
+			}
+			continue
 		}
 
-		switch v.Status {
-		case qaenviov1.Pending:
-			delete(coordinator.Status.PullRequestMap, k)
-		default:
-			// remove pr has been closed/merged
-			if latestPRs[int(kInt)] == nil {
-				err = r.revokeQAEnv(ctx, coordinator, int(kInt))
+		// remove all non-inqa pr
+		for key := range tval.PullRequestsMap {
+			inqa := false
+
+			for _, currPr := range r.tickets[ticketId] {
+				if fmt.Sprintf("%s-%d", currPr.Head.GetRepo().GetName(), currPr.GetNumber()) == key {
+					inqa = true
+				}
+			}
+
+			if !inqa {
+				delete(coordinator.Status.TicketMap[ticketId].PullRequestsMap, key)
+			}
+		}
+	}
+
+	// create qaenv for ticket has in-qa pr and update prs for that ticket
+	for ticketId, prs := range r.tickets {
+		if coordinator.Status.TicketMap[ticketId] == nil {
+
+			// check if there are available qaenvs
+			var envSlot *string
+			for i, env := range coordinator.Status.QaEnvs {
+				if !env {
+					envSlot = &i
+					break
+				}
+			}
+
+			if envSlot != nil {
+				// allocate the qaenv for ticket
+				err := r.createQAEnv(ctx, coordinator, ticketId, *envSlot)
 				if err != nil {
-					log.Error(err, "error revoke QAEnv")
+					log.Error(err, "error allocate the qaenv for ticket")
 					return err
 				}
-				continue
-			}
 
-			// remove pr have ready-to-revoke-qa-env label
-			for _, label := range latestPRs[int(kInt)].Labels {
-				if *label.Name == string(ReadyToReVokeQA) {
-					err = r.revokeQAEnv(ctx, coordinator, int(kInt))
-					if err != nil {
-						log.Error(err, "error revoke QAEnv")
-						return err
+				prStatus := make(map[string]qaenviov1.PullRequest, 0)
+
+				for _, v := range prs {
+
+					key := fmt.Sprintf("%s-%d", v.Head.GetRepo().GetName(), v.GetNumber())
+					prStatus[key] = qaenviov1.PullRequest{
+						Name:       v.GetNumber(),
+						Repository: v.Head.GetRepo().GetName(),
 					}
+				}
 
-					log.Info("QA env is revoked for PR")
+				coordinator.Status.TicketMap[ticketId] = &qaenviov1.TicketMap{
+					Status:          qaenviov1.Allocated,
+					QAEnvIndex:      envSlot,
+					PullRequestsMap: prStatus,
+				}
+
+				coordinator.Status.QaEnvs[*envSlot] = true
+			} else {
+				// not enough env for ticket
+				prStatus := make(map[string]qaenviov1.PullRequest, 0)
+
+				for _, v := range prs {
+
+					key := fmt.Sprintf("%s-%d", v.Head.GetRepo().GetName(), v.GetNumber())
+					prStatus[key] = qaenviov1.PullRequest{
+						Name:       v.GetNumber(),
+						Repository: v.Head.GetRepo().GetName(),
+					}
+				}
+
+				coordinator.Status.TicketMap[ticketId] = &qaenviov1.TicketMap{
+					Status:          qaenviov1.Pending,
+					QAEnvIndex:      nil,
+					PullRequestsMap: prStatus,
 				}
 			}
 
+			continue
 		}
 
+		// insert more in-qa pr
+		for _, currPr := range prs {
+			prKey := fmt.Sprintf("%s-%d", currPr.Head.GetRepo().GetName(), currPr.GetNumber())
+			if _, ok := coordinator.Status.TicketMap[ticketId].PullRequestsMap[prKey]; !ok {
+				coordinator.Status.TicketMap[ticketId].PullRequestsMap[prKey] = qaenviov1.PullRequest{
+					Name:       currPr.GetNumber(),
+					Repository: currPr.Head.GetRepo().GetName(),
+				}
+			}
+		}
 	}
 
-	// there are new PRs with ready-to-deploy-qa label => create QAEnv
-	for k, pr := range latestPRs {
-		if coordinator.Status.PullRequestMap[fmt.Sprint(k)].QAEnv == nil {
-			for _, label := range pr.Labels {
-				if *label.Name == string(ReadyToDeployQA) {
-					err := r.createQAEnv(ctx, coordinator, k)
+	//re-create allocated ticket and allocate pending ticket if there is available slot
+	qaenvs := &qaenviov1.QAEnvList{}
+	if err := r.Client.List(ctx, qaenvs,
+		client.InNamespace(coordinator.Namespace),
+		// client.MatchingFields{ownerKey: obj.Name}, //todo: index
+	); err != nil {
+		if client.IgnoreNotFound(err) != nil {
+			return err
+		}
+	}
+
+	if len(qaenvs.Items) != len(coordinator.Status.TicketMap) {
+		for ticketId, ticket := range coordinator.Status.TicketMap {
+
+			switch ticket.Status {
+			case qaenviov1.Pending:
+
+				// check if there are available qaenvs
+				var envSlot *string
+				for i, env := range coordinator.Status.QaEnvs {
+					if !env {
+						envSlot = &i
+						break
+					}
+				}
+
+				if envSlot != nil {
+					err := r.createQAEnv(ctx, coordinator, ticketId, *envSlot)
 					if err != nil {
 						log.Error(err, "error create QAEnv")
 						return err
 					}
 
+					coordinator.Status.TicketMap[ticketId].Status = qaenviov1.Allocated
+					coordinator.Status.TicketMap[ticketId].QAEnvIndex = envSlot
+					coordinator.Status.QaEnvs[*envSlot] = true
+				}
+
+			case qaenviov1.Allocated:
+				// todo: need review create condition to avoid too much request to api server
+				err := r.createQAEnv(ctx, coordinator, ticketId, *ticket.QAEnvIndex)
+				if err != nil {
+					log.Error(err, "error create QAEnv")
+					return err
 				}
 			}
+
 		}
+	}
+
+	return nil
+}
+
+func (r *CoordinatorReconciler) makeTicketMapFromPullRequest(
+	ctx context.Context,
+	ownerName string,
+	repoName string,
+) error {
+	prs, _, err := r.gh.PullRequests.List(
+		ctx,
+		ownerName,
+		repoName,
+		nil,
+	)
+	if err != nil {
+		return err
+	}
+
+	for _, pr := range prs {
+		inqa := false
+		for _, l := range pr.Labels {
+			if l.GetName() == InQA {
+				inqa = true
+			}
+		}
+
+		if inqa {
+			r.tickets[pr.Head.GetRef()] = append(r.tickets[pr.Head.GetRef()], *pr)
+		}
+
 	}
 
 	return nil
@@ -212,35 +349,24 @@ func (r *CoordinatorReconciler) reconcileGithubPR(
 func (r *CoordinatorReconciler) revokeQAEnv(
 	ctx context.Context,
 	coordinator *qaenviov1.Coordinator,
-	prId int,
+	ticketId string,
 ) error {
+	log := ctrl.LoggerFrom(ctx)
 	if err := r.Client.Delete(ctx, &qaenviov1.QAEnv{
+		TypeMeta: metav1.TypeMeta{},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprint(prId),
-			Namespace: coordinator.Namespace,
-		},
+			Name:      fmt.Sprintf("%s-%s", coordinator.Name, strings.ToLower(ticketId)),
+			Namespace: coordinator.Namespace},
 	}); err != nil {
-		return err
+		if !errors.IsNotFound(err) {
+			return err
+		}
+
+		log.Info("qaenv has been deleted", "name", ticketId, "namespace", coordinator.Namespace)
 	}
 
-	switch coordinator.Status.PullRequestMap[fmt.Sprint(prId)].Status {
-	case qaenviov1.Pending:
-		delete(coordinator.Status.PullRequestMap, fmt.Sprint(prId))
-	default:
-		coordinator.Status.QaEnvs[*coordinator.Status.PullRequestMap[fmt.Sprint(prId)].QAEnv] = false
-		delete(coordinator.Status.PullRequestMap, fmt.Sprint(prId))
-
-	}
-
-	err := r.removeLabelOnPR(ctx, coordinator, prId, ReadyToReVokeQA)
-	if err != nil {
-		return fmt.Errorf("error revoke github label: %w", err)
-	}
-
-	err = r.createCommentOnPR(ctx, coordinator, prId, "PR is revoked from ? env")
-	if err != nil {
-		return fmt.Errorf("error create github comment: %w", err)
-	}
+	coordinator.Status.QaEnvs[*coordinator.Status.TicketMap[ticketId].QAEnvIndex] = false
+	delete(coordinator.Status.TicketMap, fmt.Sprint(ticketId))
 
 	return nil
 }
@@ -248,57 +374,54 @@ func (r *CoordinatorReconciler) revokeQAEnv(
 func (r *CoordinatorReconciler) createQAEnv(
 	ctx context.Context,
 	coordinator *qaenviov1.Coordinator,
-	prId int,
+	ticketId string,
+	envIndex string,
 ) error {
+	log := log.FromContext(ctx)
+	imagePolicies := make([]qaenviov1.ImagePolicySpec, 0)
 
-	// check if there are available qaenvs
-	var aenv *int
-	for i, env := range coordinator.Status.QaEnvs {
-		if env {
-			aenv = &i
-			break
+	for _, repo := range coordinator.Spec.Services {
+		for _, service := range repo {
+			imagePolicies = append(imagePolicies, qaenviov1.ImagePolicySpec{
+				Name: fmt.Sprintf("%s-qa%s", service, envIndex),
+				ImageRepositoryRef: meta.NamespacedObjectReference{
+					Name:      service,
+					Namespace: coordinator.Namespace,
+				},
+			})
+
 		}
 	}
 
-	if aenv != nil {
-		qaEnv := &qaenviov1.QAEnv{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      fmt.Sprint(prId),
-				Namespace: coordinator.Namespace,
+	qaEnv := &qaenviov1.QAEnv{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("%s-%s", coordinator.Name, strings.ToLower(ticketId)),
+			Namespace: coordinator.Namespace,
+		},
+		Spec: qaenviov1.QAEnvSpec{
+			TicketId:      ticketId,
+			QAEnvIndex:    envIndex,
+			ImagePolicies: imagePolicies,
+			KustomizationSpec: qaenviov1.KustomizationSpec{
+				Path:      fmt.Sprintf("./clusters/songoku/qa/%s/%s", envIndex, coordinator.Spec.ProjectName),
+				Prune:     true,
+				SourceRef: coordinator.Spec.SourceRef,
+				Kind:      coordinator.Spec.SourceRef.Kind,
 			},
-			Spec: qaenviov1.QAEnvSpec{},
+			Interval: coordinator.Spec.Interval,
+		},
+	}
+
+	if err := ctrl.SetControllerReference(coordinator, qaEnv, r.Scheme); err != nil {
+		return fmt.Errorf("error set controller reference: %w", err)
+	}
+
+	if err := r.Client.Create(ctx, qaEnv); err != nil {
+		if !errors.IsAlreadyExists(err) {
+			return fmt.Errorf("error create qaenv: %w", err)
 		}
 
-		if err := ctrl.SetControllerReference(coordinator, qaEnv, r.Scheme); err != nil {
-			return err
-		}
-
-		if err := r.Client.Create(ctx, qaEnv); err != nil {
-			return err
-		}
-
-		err := r.removeLabelOnPR(ctx, coordinator, prId, ReadyToDeployQA)
-		if err != nil {
-			return fmt.Errorf("error remove github label: %w", err)
-		}
-
-		err = r.createCommentOnPR(ctx, coordinator, prId, "PR is deployed to ? env")
-		if err != nil {
-			return fmt.Errorf("error create github comment: %w", err)
-		}
-
-		coordinator.Status.PullRequestMap[fmt.Sprint(prId)] = qaenviov1.PullRequest{
-			Status: qaenviov1.Allocated,
-			QAEnv:  aenv,
-		}
-
-		coordinator.Status.QaEnvs[*aenv] = true
-	} else {
-
-		coordinator.Status.PullRequestMap[fmt.Sprint(prId)] = qaenviov1.PullRequest{
-			Status: qaenviov1.Pending,
-			QAEnv:  nil,
-		}
+		log.Info("qaenv has been created", "name", ticketId, "namespace", coordinator.Namespace)
 	}
 
 	return nil

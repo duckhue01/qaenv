@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	"github.com/fluxcd/pkg/apis/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -37,27 +38,56 @@ type CoordinatorSpec struct {
 	// +required
 	GithubRepoOwner string `json:"githubRepoOwner"`
 
-	// GithubRepoName is application repository name that Coordinator will observer events.
+	// Services is a map with key is repo name and values are services in that repo. Service must be unique on all repositories.
 	// +required
-	GithubRepoName string `json:"githubRepoName"`
+	Services map[string][]string `json:"services"`
 
 	// QAEnvLimit is upper bound number of QAEnv
 	// +required
-	QAEnvLimit int `json:"qaEnvLimit"`
+	// QAEnvLimit int `json:"qaEnvLimit"`
+
+	// Interval
+	// +required
+	Interval metav1.Duration `json:"interval"`
+
+	// QAEnvSpec
+	// +required
+	QAEnvTemplate QAEnvTemplate `json:"qaEnvTemplate"`
+
+	ProjectName string `json:"projectName"`
+
+	// SourceRef
+	// +required
+	SourceRef kustomizev1.CrossNamespaceSourceReference `json:"sourceRef"`
+}
+
+type QAEnvTemplate struct {
+	// Interval
+	// +required
+	Interval metav1.Duration `json:"interval"`
+
+	// QaEnvironments
+	// +required
+	QaEnvs []int `json:"qaEnvs"`
 }
 
 // CoordinatorStatus defines the observed state of Coordinator
 type CoordinatorStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	TicketMap map[string]*TicketMap `json:"ticketMap"`
+	QaEnvs    map[string]bool       `json:"qaEnvs"`
+}
 
-	PullRequestMap map[string]PullRequest `json:"pullRequestMap"`
-	QaEnvs         []bool                 `json:"qaEnv"`
+type TicketMap struct {
+	Status          QAEnvStatusCode        `json:"status"`
+	QAEnvIndex      *string                `json:"qaEnvIndex,omitempty"`
+	PullRequestsMap map[string]PullRequest `json:"pullRequestNames"`
 }
 
 type PullRequest struct {
-	Status QAEnvStatusCode `json:"status"`
-	QAEnv  *int            `json:"qaEnv,omitempty"`
+	Name       int    `json:"name"`
+	Repository string `json:"repository"`
 }
 
 //+kubebuilder:object:root=true

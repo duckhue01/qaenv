@@ -34,17 +34,30 @@ spec:
           spec:
             description: CoordinatorSpec defines the desired state of Coordinator
             properties:
-              githubRepoName:
-                description: GithubRepoName is application repository name that Coordinator
-                  will observer events.
-                type: string
               githubRepoOwner:
                 description: GithubRepoURL is application repository owner that Coordinator
                   will observer events.
                 type: string
-              qaEnvLimit:
-                description: QAEnvLimit is upper bound number of QAEnv
-                type: integer
+              interval:
+                description: Interval
+                type: string
+              projectName:
+                type: string
+              qaEnvTemplate:
+                description: QAEnvSpec
+                properties:
+                  interval:
+                    description: Interval
+                    type: string
+                  qaEnvs:
+                    description: QaEnvironments
+                    items:
+                      type: integer
+                    type: array
+                required:
+                - interval
+                - qaEnvs
+                type: object
               secretRef:
                 description: Secret hold needed secret for coordinator
                 properties:
@@ -58,33 +71,84 @@ spec:
                 required:
                 - name
                 type: object
+              services:
+                additionalProperties:
+                  items:
+                    type: string
+                  type: array
+                description: Services is a map with key is repo name and values are
+                  services in that repo. Service must be unique on all repositories.
+                type: object
+              sourceRef:
+                description: SourceRef
+                properties:
+                  apiVersion:
+                    description: API version of the referent.
+                    type: string
+                  kind:
+                    description: Kind of the referent.
+                    enum:
+                    - OCIRepository
+                    - GitRepository
+                    - Bucket
+                    type: string
+                  name:
+                    description: Name of the referent.
+                    type: string
+                  namespace:
+                    description: Namespace of the referent, defaults to the namespace
+                      of the Kubernetes resource object that contains the reference.
+                    type: string
+                required:
+                - kind
+                - name
+                type: object
             required:
-            - githubRepoName
             - githubRepoOwner
-            - qaEnvLimit
+            - interval
+            - projectName
+            - qaEnvTemplate
             - secretRef
+            - services
+            - sourceRef
             type: object
           status:
             description: CoordinatorStatus defines the observed state of Coordinator
             properties:
-              pullRequestMap:
+              qaEnvs:
+                additionalProperties:
+                  type: boolean
+                type: object
+              ticketMap:
                 additionalProperties:
                   properties:
-                    qaEnv:
-                      type: integer
+                    pullRequestNames:
+                      additionalProperties:
+                        properties:
+                          name:
+                            type: integer
+                          repository:
+                            type: string
+                        required:
+                        - name
+                        - repository
+                        type: object
+                      type: object
+                    qaEnvIndex:
+                      type: string
                     status:
                       type: string
                   required:
+                  - pullRequestNames
                   - status
                   type: object
+                description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
+                  of cluster Important: Run "make" to regenerate code after modifying
+                  this file'
                 type: object
-              qaEnv:
-                items:
-                  type: boolean
-                type: array
             required:
-            - pullRequestMap
-            - qaEnv
+            - qaEnvs
+            - ticketMap
             type: object
         type: object
     served: true

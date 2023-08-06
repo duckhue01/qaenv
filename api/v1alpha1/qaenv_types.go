@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	"github.com/fluxcd/pkg/apis/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -38,8 +39,62 @@ type QAEnvSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of QAEnv. Edit qaenv_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	// PullRequestName
+	// +required
+	// PullRequestName int `json:"pullRequestName"`
+
+	// +required
+	// TicketId int `json:"pullRequestName"`
+	TicketId string `json:"ticketId"`
+
+	// QAEnvIndex
+	// +required
+	QAEnvIndex string `json:"qaEnvIndex"`
+
+	// ImageRepositoryRef
+	// +required
+	ImagePolicies []ImagePolicySpec `json:"imageRepositoryRef"`
+
+	// KustomizationSpec
+	// +required
+	KustomizationSpec KustomizationSpec `json:"kustomizationSpec"`
+
+	// Services is a map with key is repo name and values are services in that repo
+	// +required
+
+	// Interval
+	// +required
+	Interval metav1.Duration `json:"interval"`
+}
+
+type ImagePolicySpec struct {
+	Name               string                         `json:"name"`
+	ImageRepositoryRef meta.NamespacedObjectReference `json:"imageRepositoryRef"`
+}
+
+type KustomizationSpec struct {
+	// +required
+	Path string `json:"path"`
+
+	// +kubebuilder:default:=true
+	// +optional
+	Prune bool `json:"prune"`
+
+	// +required
+	SourceRef kustomizev1.CrossNamespaceSourceReference `json:"sourceRef"`
+
+	// Kind of the referent.
+	// +kubebuilder:validation:Enum=OCIRepository;GitRepository;Bucket
+	// +required
+	Kind string `json:"kind"`
+
+	// Name of the referent.
+	// +required
+	Name string `json:"name"`
+
+	// Interval.
+	// +required
+	Interval metav1.Duration `json:"interval"`
 }
 
 // QAEnvStatus defines the observed state of QAEnv
@@ -51,9 +106,9 @@ type QAEnvStatus struct {
 	// +optional
 	Kustomization *meta.NamespacedObjectReference `json:"kustomization,omitempty"`
 
-	// ImageReflector
+	// GitRepository
 	// +optional
-	ImageReflector *meta.NamespacedObjectReference `json:"imageReflector,omitempty"`
+	ImagePolicies map[string]*meta.NamespacedObjectReference `json:"imagePolicies,omitempty"`
 }
 
 //+kubebuilder:object:root=true
