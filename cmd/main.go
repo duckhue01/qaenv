@@ -99,8 +99,9 @@ func main() {
 	}
 
 	if err = (&controller.CoordinatorReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:   mgr.GetClient(),
+		Scheme:   mgr.GetScheme(),
+		Recorder: mgr.GetEventRecorderFor("mykind-controller"), // todo: change me
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Coordinator")
 		os.Exit(1)

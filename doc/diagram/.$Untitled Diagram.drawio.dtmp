@@ -1,6 +1,6 @@
-<mxfile host="Electron" modified="2023-08-08T07:24:17.389Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.6.1 Chrome/112.0.5615.204 Electron/24.6.1 Safari/537.36" etag="3kFjEFz3HfaOCUs9Wj9N" version="21.6.1" type="device">
+<mxfile host="Electron" modified="2023-08-08T09:10:07.784Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.6.1 Chrome/112.0.5615.204 Electron/24.6.1 Safari/537.36" etag="wlAmc-jSwVnoCDNdKqts" version="21.6.1" type="device">
   <diagram name="Page-1" id="bRJaaYgt9LoUnJo3XgJA">
-    <mxGraphModel dx="857" dy="566" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="994" dy="657" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -19,7 +19,7 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="MyCjg8jNjYNJ0jFQ8e_i-13" value="qaenv" style="rounded=1;whiteSpace=wrap;html=1;fontFamily=Comic Sans MS;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
-          <mxGeometry x="660" y="520" width="120" height="60" as="geometry" />
+          <mxGeometry x="560" y="520" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="1FVxKT_KeWVKLxRqhHUP-2" value="flux repo" style="rounded=1;whiteSpace=wrap;html=1;fontFamily=Comic Sans MS;" parent="1" vertex="1">
           <mxGeometry x="120" y="440" width="120" height="60" as="geometry" />
@@ -28,7 +28,7 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="1FVxKT_KeWVKLxRqhHUP-3" value="image-reflector" style="rounded=1;whiteSpace=wrap;html=1;fontFamily=Comic Sans MS;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
-          <mxGeometry x="900" y="520" width="120" height="60" as="geometry" />
+          <mxGeometry x="730" y="520" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="1FVxKT_KeWVKLxRqhHUP-7" value="create/update/delete" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Comic Sans MS;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="1FVxKT_KeWVKLxRqhHUP-4" target="MyCjg8jNjYNJ0jFQ8e_i-13" edge="1">
           <mxGeometry relative="1" as="geometry">
@@ -51,26 +51,23 @@
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="af4A0dXmnBTcaQTSE69T-12" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="1FVxKT_KeWVKLxRqhHUP-4" target="af4A0dXmnBTcaQTSE69T-6">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
         <mxCell id="1FVxKT_KeWVKLxRqhHUP-4" value="coordinator" style="rounded=1;whiteSpace=wrap;html=1;fontFamily=Comic Sans MS;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
           <mxGeometry x="560" y="400" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="1FVxKT_KeWVKLxRqhHUP-8" value="qa0" style="rounded=1;whiteSpace=wrap;html=1;fontFamily=Comic Sans MS;" parent="1" vertex="1">
-          <mxGeometry x="530" y="700" width="120" height="60" as="geometry" />
+          <mxGeometry x="430" y="700" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="1FVxKT_KeWVKLxRqhHUP-9" value="qa1" style="rounded=1;whiteSpace=wrap;html=1;fontFamily=Comic Sans MS;" parent="1" vertex="1">
-          <mxGeometry x="660" y="700" width="120" height="60" as="geometry" />
+          <mxGeometry x="560" y="700" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="1FVxKT_KeWVKLxRqhHUP-12" value="..." style="rounded=1;whiteSpace=wrap;html=1;fontFamily=Comic Sans MS;" parent="1" vertex="1">
-          <mxGeometry x="790" y="700" width="120" height="60" as="geometry" />
+          <mxGeometry x="690" y="700" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="1FVxKT_KeWVKLxRqhHUP-19" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;fontFamily=Comic Sans MS;" parent="1" source="1FVxKT_KeWVKLxRqhHUP-17" target="1FVxKT_KeWVKLxRqhHUP-12" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="1FVxKT_KeWVKLxRqhHUP-17" value="kustomization" style="rounded=1;whiteSpace=wrap;html=1;fontFamily=Comic Sans MS;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
-          <mxGeometry x="660" y="610" width="120" height="60" as="geometry" />
+          <mxGeometry x="560" y="610" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="1FVxKT_KeWVKLxRqhHUP-61" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="1FVxKT_KeWVKLxRqhHUP-60" target="1FVxKT_KeWVKLxRqhHUP-2" edge="1">
           <mxGeometry relative="1" as="geometry" />
@@ -82,13 +79,10 @@
           <mxGeometry x="300" y="270" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="Y9SOZPqc_NS9b9A4EtHp-3" value="image registry" style="rounded=1;whiteSpace=wrap;html=1;fontFamily=Comic Sans MS;" parent="1" vertex="1">
-          <mxGeometry x="900" y="400" width="120" height="60" as="geometry" />
+          <mxGeometry x="730" y="400" width="120" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="af4A0dXmnBTcaQTSE69T-2" value="&lt;span style=&quot;border-color: var(--border-color);&quot;&gt;&lt;font style=&quot;border-color: var(--border-color);&quot; face=&quot;Comic Sans MS&quot;&gt;&lt;b&gt;(v) create new qaenv whenever we have new pr with different ticket id on multiple repositories.&lt;/b&gt;&lt;br style=&quot;border-color: var(--border-color);&quot;&gt;&lt;br style=&quot;border-color: var(--border-color);&quot;&gt;&lt;b style=&quot;font-weight: bold; border-color: var(--border-color); font-family: Helvetica;&quot;&gt;&lt;font style=&quot;border-color: var(--border-color);&quot; face=&quot;Comic Sans MS&quot;&gt;(v)&amp;nbsp;&lt;/font&gt;&lt;/b&gt;&lt;b&gt;watching change in pr and create image&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;+&amp;nbsp;&lt;span style=&quot;border-color: var(--border-color); font-family: Helvetica;&quot;&gt;&lt;font style=&quot;border-color: var(--border-color);&quot; face=&quot;Comic Sans MS&quot;&gt;&lt;span style=&quot;border-color: var(--border-color); font-family: Helvetica;&quot;&gt;&lt;font style=&quot;border-color: var(--border-color);&quot; face=&quot;Comic Sans MS&quot;&gt;&lt;span style=&quot;border-color: var(--border-color); font-family: Helvetica;&quot;&gt;&lt;font style=&quot;border-color: var(--border-color);&quot; face=&quot;Comic Sans MS&quot;&gt;&lt;strike style=&quot;&quot;&gt;detect new commit then build &lt;/strike&gt;&lt;strike&gt;new&lt;/strike&gt;&lt;strike style=&quot;&quot;&gt; image&lt;/strike&gt;.&lt;br&gt;&lt;/font&gt;&lt;/span&gt;&lt;/font&gt;&lt;/span&gt;&lt;/font&gt;&lt;/span&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;+ build image when pr is labeled&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;&lt;br style=&quot;border-color: var(--border-color);&quot;&gt;&lt;b&gt;(x) notification:&lt;br&gt;&lt;/b&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;+ &lt;strike&gt;create a message to notice all prs have the same ticket id&lt;br&gt;&lt;/strike&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;+ &lt;strike&gt;notice when image is built successfully&lt;/strike&gt;&lt;br&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;+ &lt;strike&gt;notica when env is allocated&lt;/strike&gt;&lt;br style=&quot;border-color: var(--border-color);&quot;&gt;&lt;span style=&quot;border-color: var(--border-color);&quot;&gt;&lt;span style=&quot;border-color: var(--border-color); font-family: Helvetica;&quot;&gt;&lt;font style=&quot;border-color: var(--border-color);&quot; face=&quot;Comic Sans MS&quot;&gt;&lt;b&gt;(x) database migration:&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;+&amp;nbsp;&lt;span style=&quot;border-color: var(--border-color); font-family: Helvetica;&quot;&gt;&lt;font style=&quot;border-color: var(--border-color);&quot; face=&quot;Comic Sans MS&quot;&gt;&lt;span style=&quot;font-weight: normal;&quot;&gt;reset db to uat each time new ticket is open&lt;br&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;+ mapping db to each p&lt;/span&gt;r&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;(v) implemented&lt;/b&gt;&lt;br&gt;&lt;b&gt;(~) in progress&lt;/b&gt;&lt;br&gt;&lt;b&gt;(x) not implemented&lt;/b&gt;&lt;br&gt;&lt;/font&gt;&lt;/span&gt;&lt;span style=&quot;font-weight: bold;&quot;&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;/font&gt;&lt;/span&gt;&lt;/span&gt;&lt;/font&gt;&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;" vertex="1" parent="1">
+        <mxCell id="af4A0dXmnBTcaQTSE69T-2" value="&lt;span style=&quot;border-color: var(--border-color);&quot;&gt;&lt;font style=&quot;border-color: var(--border-color);&quot; face=&quot;Comic Sans MS&quot;&gt;&lt;b&gt;(v) create new qaenv whenever we have new pr with different ticket id on multiple repositories.&lt;/b&gt;&lt;br style=&quot;border-color: var(--border-color);&quot;&gt;&lt;br style=&quot;border-color: var(--border-color);&quot;&gt;&lt;b style=&quot;font-weight: bold; border-color: var(--border-color); font-family: Helvetica;&quot;&gt;&lt;font style=&quot;border-color: var(--border-color);&quot; face=&quot;Comic Sans MS&quot;&gt;(v)&amp;nbsp;&lt;/font&gt;&lt;/b&gt;&lt;b&gt;watching change in pr and create image&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;+&amp;nbsp;&lt;span style=&quot;border-color: var(--border-color); font-family: Helvetica;&quot;&gt;&lt;font style=&quot;border-color: var(--border-color);&quot; face=&quot;Comic Sans MS&quot;&gt;&lt;span style=&quot;border-color: var(--border-color); font-family: Helvetica;&quot;&gt;&lt;font style=&quot;border-color: var(--border-color);&quot; face=&quot;Comic Sans MS&quot;&gt;&lt;span style=&quot;border-color: var(--border-color); font-family: Helvetica;&quot;&gt;&lt;font style=&quot;border-color: var(--border-color);&quot; face=&quot;Comic Sans MS&quot;&gt;&lt;strike style=&quot;&quot;&gt;detect new commit then build &lt;/strike&gt;&lt;strike&gt;new&lt;/strike&gt;&lt;strike style=&quot;&quot;&gt; image&lt;/strike&gt;.&lt;br&gt;&lt;/font&gt;&lt;/span&gt;&lt;/font&gt;&lt;/span&gt;&lt;/font&gt;&lt;/span&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;+ build image when pr is labeled&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;&lt;br style=&quot;border-color: var(--border-color);&quot;&gt;&lt;b&gt;(v) notification:&lt;br&gt;&lt;/b&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;+ &lt;strike&gt;create a message to notice all prs have the same ticket id&lt;br&gt;&lt;/strike&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;+ &lt;strike&gt;notice when image is built successfully&lt;/strike&gt;&lt;br&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;+ notice when env is allocated or in pending state&lt;br style=&quot;border-color: var(--border-color);&quot;&gt;&lt;span style=&quot;border-color: var(--border-color);&quot;&gt;&lt;span style=&quot;border-color: var(--border-color); font-family: Helvetica;&quot;&gt;&lt;font style=&quot;border-color: var(--border-color);&quot; face=&quot;Comic Sans MS&quot;&gt;&lt;b&gt;(x) prepare stateful component:&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;+&amp;nbsp;&lt;span style=&quot;border-color: var(--border-color); font-family: Helvetica;&quot;&gt;&lt;font style=&quot;border-color: var(--border-color);&quot; face=&quot;Comic Sans MS&quot;&gt;&lt;span style=&quot;font-weight: normal;&quot;&gt;reset db to uat each time new ticket is open&lt;br&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;+ mapping db to each p&lt;/span&gt;r&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;(v) implemented&lt;/b&gt;&lt;br&gt;&lt;b&gt;(~) in progress&lt;/b&gt;&lt;br&gt;&lt;b&gt;(x) not implemented&lt;/b&gt;&lt;br&gt;&lt;/font&gt;&lt;/span&gt;&lt;span style=&quot;font-weight: bold;&quot;&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;/font&gt;&lt;/span&gt;&lt;/span&gt;&lt;/font&gt;&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;" vertex="1" parent="1">
           <mxGeometry x="640" y="40" width="400" height="320" as="geometry" />
-        </mxCell>
-        <mxCell id="af4A0dXmnBTcaQTSE69T-6" value="notifier" style="rounded=1;whiteSpace=wrap;html=1;fontFamily=Comic Sans MS;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
-          <mxGeometry x="480" y="520" width="120" height="60" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

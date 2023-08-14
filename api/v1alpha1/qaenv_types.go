@@ -27,8 +27,6 @@ type QAEnvStatusCode string
 var (
 	Pending   QAEnvStatusCode = "pending"
 	Allocated QAEnvStatusCode = "allocated"
-	Deployed  QAEnvStatusCode = "deployed"
-	Failed    QAEnvStatusCode = "failed"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!

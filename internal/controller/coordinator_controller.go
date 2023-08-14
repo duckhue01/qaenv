@@ -73,7 +73,6 @@ func (r *CoordinatorReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		log.Error(err, "coordinator not found")
 		return ctrl.Result{}, err
 	}
-
 	// initiate state
 	if coordinator.Status.TicketMap == nil {
 		coordinator.Status.TicketMap = make(map[string]*qaenviov1.TicketMap)
@@ -164,6 +163,7 @@ func (r *CoordinatorReconciler) reconcileQAEnv(
 	for ticketId, tval := range coordinator.Status.TicketMap {
 		if r.tickets[ticketId] == nil {
 			err := r.revokeQAEnv(ctx, coordinator, ticketId)
+			// todo: notice pr will be removed
 			if err != nil {
 				log.Error(err, "error revoke QAEnv")
 				return err
@@ -172,7 +172,7 @@ func (r *CoordinatorReconciler) reconcileQAEnv(
 		}
 
 		// remove all non-inqa pr
-		for key := range tval.PullRequestsMap {
+		for key, pr := range tval.PullRequestsMap {
 			inqa := false
 
 			for _, currPr := range r.tickets[ticketId] {
@@ -182,7 +182,15 @@ func (r *CoordinatorReconciler) reconcileQAEnv(
 			}
 
 			if !inqa {
+				r.createCommentOnPR(
+					ctx,
+					coordinator.Spec.GithubRepoOwner,
+					pr.Repository,
+					pr.Name,
+					fmt.Sprintf("this pr has been allocated on qaenv: %s", *coordinator.Status.TicketMap[ticketId].QAEnvIndex),
+				)
 				delete(coordinator.Status.TicketMap[ticketId].PullRequestsMap, key)
+
 			}
 		}
 	}
@@ -217,6 +225,14 @@ func (r *CoordinatorReconciler) reconcileQAEnv(
 						Name:       v.GetNumber(),
 						Repository: v.Head.GetRepo().GetName(),
 					}
+
+					r.createCommentOnPR(
+						ctx,
+						coordinator.Spec.GithubRepoOwner,
+						v.Head.GetRepo().GetName(),
+						v.GetNumber(),
+						fmt.Sprintf("this pr has been allocated on qaenv: %s", *envSlot),
+					)
 				}
 
 				coordinator.Status.TicketMap[ticketId] = &qaenviov1.TicketMap{
@@ -226,6 +242,7 @@ func (r *CoordinatorReconciler) reconcileQAEnv(
 				}
 
 				coordinator.Status.QaEnvs[*envSlot] = true
+
 			} else {
 				// not enough env for ticket
 				prStatus := make(map[string]qaenviov1.PullRequest, 0)
@@ -237,6 +254,14 @@ func (r *CoordinatorReconciler) reconcileQAEnv(
 						Name:       v.GetNumber(),
 						Repository: v.Head.GetRepo().GetName(),
 					}
+
+					r.createCommentOnPR(
+						ctx,
+						coordinator.Spec.GithubRepoOwner,
+						v.Head.GetRepo().GetName(),
+						v.GetNumber(),
+						"this pr has been push on queue",
+					)
 				}
 
 				coordinator.Status.TicketMap[ticketId] = &qaenviov1.TicketMap{
@@ -246,19 +271,28 @@ func (r *CoordinatorReconciler) reconcileQAEnv(
 				}
 			}
 
-			continue
-		}
+		} else {
+			// insert more in-qa pr
+			for _, currPr := range prs {
+				prKey := fmt.Sprintf("%s-%d", currPr.Head.GetRepo().GetName(), currPr.GetNumber())
+				if _, ok := coordinator.Status.TicketMap[ticketId].PullRequestsMap[prKey]; !ok {
+					coordinator.Status.TicketMap[ticketId].PullRequestsMap[prKey] = qaenviov1.PullRequest{
+						Name:       currPr.GetNumber(),
+						Repository: currPr.Head.GetRepo().GetName(),
+					}
 
-		// insert more in-qa pr
-		for _, currPr := range prs {
-			prKey := fmt.Sprintf("%s-%d", currPr.Head.GetRepo().GetName(), currPr.GetNumber())
-			if _, ok := coordinator.Status.TicketMap[ticketId].PullRequestsMap[prKey]; !ok {
-				coordinator.Status.TicketMap[ticketId].PullRequestsMap[prKey] = qaenviov1.PullRequest{
-					Name:       currPr.GetNumber(),
-					Repository: currPr.Head.GetRepo().GetName(),
+					r.createCommentOnPR(
+						ctx,
+						coordinator.Spec.GithubRepoOwner,
+						currPr.Head.GetRepo().GetName(),
+						currPr.GetNumber(),
+						fmt.Sprintf("this pr has been allocated on qaenv: %s", *coordinator.Status.TicketMap[ticketId].QAEnvIndex),
+					)
 				}
+
 			}
 		}
+
 	}
 
 	//re-create allocated ticket and allocate pending ticket if there is available slot
@@ -277,7 +311,6 @@ func (r *CoordinatorReconciler) reconcileQAEnv(
 
 			switch ticket.Status {
 			case qaenviov1.Pending:
-
 				// check if there are available qaenvs
 				var envSlot *string
 				for i, env := range coordinator.Status.QaEnvs {
@@ -297,17 +330,26 @@ func (r *CoordinatorReconciler) reconcileQAEnv(
 					coordinator.Status.TicketMap[ticketId].Status = qaenviov1.Allocated
 					coordinator.Status.TicketMap[ticketId].QAEnvIndex = envSlot
 					coordinator.Status.QaEnvs[*envSlot] = true
+
+					for _, pr := range ticket.PullRequestsMap {
+						r.createCommentOnPR(
+							ctx,
+							coordinator.Spec.GithubRepoOwner,
+							pr.Repository,
+							pr.Name,
+							fmt.Sprintf("this pr has been allocated on qaenv: %s", *envSlot))
+					}
 				}
 
 			case qaenviov1.Allocated:
-				// todo: need review create condition to avoid too much request to api server
+				// todo: need review create condition to avoid too much requests to api server
+				// todo: check if qaenv existed or not
 				err := r.createQAEnv(ctx, coordinator, ticketId, *ticket.QAEnvIndex)
 				if err != nil {
 					log.Error(err, "error create QAEnv")
 					return err
 				}
 			}
-
 		}
 	}
 
@@ -340,7 +382,6 @@ func (r *CoordinatorReconciler) makeTicketMapFromPullRequest(
 		if inqa {
 			r.tickets[pr.Head.GetRef()] = append(r.tickets[pr.Head.GetRef()], *pr)
 		}
-
 	}
 
 	return nil
@@ -389,7 +430,6 @@ func (r *CoordinatorReconciler) createQAEnv(
 					Namespace: coordinator.Namespace,
 				},
 			})
-
 		}
 	}
 
@@ -425,6 +465,23 @@ func (r *CoordinatorReconciler) createQAEnv(
 	}
 
 	return nil
+}
+
+func (r *CoordinatorReconciler) createCommentOnPR(
+	ctx context.Context,
+	ownerName string,
+	repoName string,
+	prNumber int,
+	content string,
+) {
+	log := log.FromContext(ctx)
+	_, _, err := r.gh.Issues.CreateComment(ctx, ownerName, repoName, prNumber, &github.IssueComment{
+		Body: &content,
+	})
+
+	if err != nil {
+		log.Error(err, "error create comment")
+	}
 }
 
 // SetupWithManager sets up the controller with the Manager.

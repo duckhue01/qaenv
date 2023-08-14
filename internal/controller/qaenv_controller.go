@@ -24,7 +24,6 @@ import (
 	imagev1 "github.com/fluxcd/image-reflector-controller/api/v1beta2"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	"github.com/fluxcd/pkg/apis/meta"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -45,6 +44,7 @@ type QAEnvReconciler struct {
 //+kubebuilder:rbac:groups=qaenv.io,resources=qaenvs,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=qaenv.io,resources=qaenvs/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=qaenv.io,resources=qaenvs/finalizers,verbs=update
+//+kubebuilder:rbac:groups=core,resources=events,verbs=create;patch
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -202,7 +202,6 @@ func (r *QAEnvReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&qaenviov1.QAEnv{}).
 		Owns(&imagev1.ImagePolicy{}).
-		Owns(&sourcev1.GitRepository{}).
 		Owns(&kustomizev1.Kustomization{}).
 		Complete(r)
 }
